@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "bot-dev": "nodemon bot/index.js",
-    "bot-prod": "pm2 start bot/index.js --name \"NeverLostA5ManBot\""
+    "dev": "nodemon index.js",
+    "deploy": "pm2 restart NeverLostA5ManBot"
   },
   "keywords": [],
   "author": "",

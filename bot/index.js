@@ -61,7 +61,7 @@ client.on('message', async (msg) => {
     });
 
     msg.channel.send(
-      `The nearest possible date at which I will consider playing League of Legends (LoL) at is: ${format(
+      `The new nearest possible date at which I will consider playing League of Legends (LoL) at is: ${format(
         updatedCurrentTime,
         'MM/dd/yyyy'
       )}`
