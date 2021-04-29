@@ -4,4 +4,4 @@
 
 * bot -> source code for the bot
 
-* web -> source code fo the web site
+* web -> source code fo the website
