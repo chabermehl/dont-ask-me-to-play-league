@@ -1,5 +1,7 @@
 import { Handler } from "@netlify/functions";
-import { MongoClient } from "mongodb";
+declare const require: any;
+declare const process: any;
+const MongoClient = require("mongodb").MongoClient;
 
 const handler: Handler = async (event, context) => {
   const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@neverlosta5man-main.mnjs0.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
