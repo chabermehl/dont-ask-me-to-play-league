@@ -1,9 +1,28 @@
 import { Handler } from "@netlify/functions";
+import { MongoClient } from "mongodb";
 
 const handler: Handler = async (event, context) => {
+  const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@neverlosta5man-main.mnjs0.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  await client.connect();
+
+  const getDaysAddedCollection = async () => {
+    const db = client.db("NeverLostA5Man");
+    const collection = db.collection("DaysAddedCount");
+    const result = await collection.findOne({});
+
+    return result;
+  };
+
+  const { currentTime } = await getDaysAddedCollection();
+
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: "hello worlds" }),
+    body: JSON.stringify({ currentTime }),
   };
 };
 
