@@ -37,7 +37,7 @@ client.on('message', async (message) => {
   if (!client.commands.has(command)) return;
 
   try {
-    client.commands.get(command).execute(message, args, dbClient);
+    client.commands.get(command).execute(message, args, dbClient, {prefix});
   } catch (error) {
     console.error(error);
     message.reply('There was an error executing the command.');

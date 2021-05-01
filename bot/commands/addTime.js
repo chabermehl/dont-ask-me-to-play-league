@@ -9,6 +9,7 @@ const {
 module.exports = {
   name: 'addTime',
   description: 'Adds a day to the timer.',
+  cooldown: 5,
   execute: async (message, args, dbClient) => {
     const daysAddedCollection = await getDaysAddedCollection(dbClient);
 
