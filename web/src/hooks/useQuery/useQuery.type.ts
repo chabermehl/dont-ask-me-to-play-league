@@ -1,7 +1,11 @@
+export type Data<TValue> = {
+  [key: string]: TValue;
+};
+
 export type UseQueryState = {
   loading: boolean;
   error: boolean;
-  data: any;
+  data: Data<string> | null;
 };
 
 export type UseQueryAction = {
