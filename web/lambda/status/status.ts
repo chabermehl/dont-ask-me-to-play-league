@@ -1,7 +1,7 @@
-import { Handler } from "@netlify/functions";
+import {Handler} from '@netlify/functions';
 declare const require: any;
 declare const process: any;
-const MongoClient = require("mongodb").MongoClient;
+const MongoClient = require('mongodb').MongoClient;
 
 const handler: Handler = async (event, context) => {
   const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@neverlosta5man-main.mnjs0.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -13,19 +13,20 @@ const handler: Handler = async (event, context) => {
   await client.connect();
 
   const getDaysAddedCollection = async () => {
-    const db = client.db("NeverLostA5Man");
-    const collection = db.collection("DaysAddedCount");
+    const db = client.db('NeverLostA5Man');
+    const collection = db.collection('DaysAddedCount');
     const result = await collection.findOne({});
 
     return result;
   };
 
-  const { currentTime } = await getDaysAddedCollection();
+  const {currentTime} = await getDaysAddedCollection();
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ currentTime }),
+    'Access-Control-Allow-Origin': '*',
+    body: JSON.stringify({currentTime}),
   };
 };
 
-export { handler };
+export {handler};

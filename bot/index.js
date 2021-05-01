@@ -90,13 +90,16 @@ client.on('message', async (msg) => {
         'MM/dd/yyyy'
       )} to get ready`
     );
-  } else if(msg.content === `${prefix}status`){
+  } else if (msg.content === `${prefix}status`) {
     const daysStatus = await getDaysAddedCollection();
+
     msg.channel.send(
-      `Boys prepare yourselves for the legend's return, current ETA is for ${format(daysStatus.currentTime,
-        'MM/dd/yyyy')}.`
+      `Boys prepare yourselves for the legend's return, current ETA is for ${format(
+        daysStatus.currentTime,
+        'MM/dd/yyyy'
+      )}.`
     );
-  }else if(msg.content === `${prefix}help`){
+  } else if (msg.content === `${prefix}help`) {
     msg.channel.send(
       `Hey there Bud seems like you need some help.\nHere are some helpful commands:\n
       ?addTime: adds one day to the timer\n

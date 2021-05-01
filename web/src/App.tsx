@@ -1,7 +1,12 @@
-import React from "react";
+import React from 'react';
+import {DateRenderer} from './components';
 
 function App() {
-  return <div>hi</div>;
+  return (
+    <div>
+      <DateRenderer />
+    </div>
+  );
 }
 
 export default App;
