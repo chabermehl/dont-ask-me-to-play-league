@@ -1,15 +1,21 @@
 require('dotenv').config();
 const MongoClient = require('mongodb').MongoClient;
 const Discord = require('discord.js');
-
-const addDays = require('date-fns/addDays');
-const subDays = require('date-fns/subDays');
-const format = require('date-fns/format');
+const fs = require('fs');
 
 const {prodPrefix, devPrefix} = require('./config.json');
 const prefix = process.env.BOT_ENV === 'production' ? prodPrefix : devPrefix;
 
 const client = new Discord.Client();
+client.commands = new Discord.Collection();
+client.cooldowns = new Discord.Collection();
+
+const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@neverlosta5man-main.mnjs0.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 const dbClient = new MongoClient(uri, {
@@ -19,94 +25,51 @@ const dbClient = new MongoClient(uri, {
 
 dbClient.connect();
 
-const getDaysAddedCollection = async () => {
-  const db = dbClient.db('NeverLostA5Man');
-  const collection = db.collection('DaysAddedCount');
-  const result = await collection.findOne({});
-
-  return result;
-};
-
-const updateDaysAddedCollection = async (updateParams) => {
-  const {filter, document, options} = updateParams;
-
-  const db = dbClient.db('NeverLostA5Man');
-  const collection = db.collection('DaysAddedCount');
-  const result = await collection.updateOne(filter, document, options);
-
-  return result;
-};
-
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on('message', async (msg) => {
-  if (msg.content === `${prefix}addTime`) {
-    const daysAddedCollection = await getDaysAddedCollection();
+client.on('message', (message) => {
+  if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const updatedDayCount = daysAddedCollection.daysAdded + 1;
-    const updatedCurrentTime = addDays(daysAddedCollection.currentTime, 1);
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const commandString = args.shift();
 
-    const filter = {_id: daysAddedCollection._id};
-    const updatedCollection = {
-      daysAdded: updatedDayCount,
-      currentTime: updatedCurrentTime,
-    };
+  if (!client.commands.has(commandString)) return;
 
-    await updateDaysAddedCollection({
-      filter,
-      document: {$set: {...updatedCollection}},
-      options: {},
-    });
+  const {commands, cooldowns} = client;
 
-    msg.channel.send(
-      `The new nearest possible date at which I will consider playing League of Legends (LoL) at is: ${format(
-        updatedCurrentTime,
-        'MM/dd/yyyy'
-      )}`
-    );
-  } else if (msg.content === `${prefix}coorsTime`) {
-    const daysAddedCollection = await getDaysAddedCollection();
+  const command = commands.get(commandString);
 
-    const updatedDayCount = daysAddedCollection.daysAdded - 1;
-    const updatedCurrentTime = subDays(daysAddedCollection.currentTime, 1);
+  if (!cooldowns.has(command.name)) {
+    cooldowns.set(command.name, new Discord.Collection());
+  }
 
-    const filter = {_id: daysAddedCollection._id};
-    const updatedCollection = {
-      daysAdded: updatedDayCount,
-      currentTime: updatedCurrentTime,
-    };
+  const now = Date.now();
+  const timestamps = cooldowns.get(command.name);
+  const cooldownAmount = command.cooldown * 1000;
 
-    await updateDaysAddedCollection({
-      filter,
-      document: {$set: {...updatedCollection}},
-      options: {},
-    });
+  if (timestamps.has(message.author.id)) {
+    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-    msg.channel.send(
-      `Alright boys Im in, give me until ${format(
-        updatedCurrentTime,
-        'MM/dd/yyyy'
-      )} to get ready`
-    );
-  } else if (msg.content === `${prefix}status`) {
-    const daysStatus = await getDaysAddedCollection();
+    if (now < expirationTime) {
+      const timeLeft = (expirationTime - now) / 1000;
+      return message.reply(
+        `Please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${
+          command.name
+        }\` command.`
+      );
+    }
+  }
 
-    msg.channel.send(
-      `Boys prepare yourselves for the legend's return, current ETA is for ${format(
-        daysStatus.currentTime,
-        'MM/dd/yyyy'
-      )}.`
-    );
-  } else if (msg.content === `${prefix}help`) {
-    msg.channel.send(
-      `Hey there Bud seems like you need some help.\nHere are some helpful commands:\n
-      ?addTime: adds one day to the timer\n
-      ?coorsTime: removes a day to the timer\n
-      ?status: displays the current time left on the timer\n
-      ?help: to end up back here!`
-    );
+  timestamps.set(message.author.id, now);
+  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+  try {
+    command.execute(message, args, dbClient, {prefix});
+  } catch (error) {
+    console.error(error);
+    message.reply('There was an error executing the command.');
   }
 });
 
