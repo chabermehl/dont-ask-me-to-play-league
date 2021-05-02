@@ -10,7 +10,9 @@ module.exports = {
   name: 'coorsTime',
   description: 'Removes a day from the timer.',
   cooldown: 5,
-  execute: async (message, args, dbClient) => {
+  execute: async (params) => {
+    const {message, dbClient} = params;
+
     const daysAddedCollection = await getDaysAddedCollection(dbClient);
 
     const updatedDayCount = daysAddedCollection.daysAdded - 1;
