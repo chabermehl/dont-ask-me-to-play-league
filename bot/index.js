@@ -66,7 +66,8 @@ client.on('message', (message) => {
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
   try {
-    command.execute(message, args, dbClient, {prefix});
+    // pass an object since some things are optional
+    command.execute({message, args, dbClient, prefix});
   } catch (error) {
     console.error(error);
     message.reply('There was an error executing the command.');
